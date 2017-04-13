@@ -1,26 +1,4 @@
 
-[07:12:58] <chardan> kefu: Any suggestion for a reasonable measurement for spinlocks?
-[07:13:09] * yanzheng has quit (Quit: This computer has gone to sleep)
-[07:14:50] <BranchPredictor> chardan: "for" loop with absurdly large counter and lock/unlock in that loop?
-[07:15:23] <chardan> BranchPredictor: That's what I have for now, but I'm wondering if there's anything else folks would like to see (for ballpark-comparing with std::atomic_flag).
-[07:15:58] <BranchPredictor> counter must be large enough to have "for" loop perform a few seconds on your machine.
-[07:16:11] <chardan> BranchPredictor: Noted.
-[07:17:21] <kefu> chardan, could also have a tight loop to simulate the load protected by a spinlock.
-[07:17:58] <BranchPredictor> or a few threads racing for a lock, then unlocking it
-[07:18:04] <chardan> kefu: ie. lock(sl); loop(); unlock(sl);
-[07:18:13] <kefu> yes.
-[07:18:14] <chardan> BranchPredictor: That seems like a good idea.
-[07:18:20] * amaredia1 (~ali@c-68-49-168-39.hsd1.mi.comcast.net) has joined
-[07:18:44] <chardan> Ok, I'll see what I can do. I'm off for a few days and will be traveling tomorrow, but hopefully I'll come up with at least a hackable starting point. 
-[07:18:54] <chardan> Thanks!
-[07:18:56] <kefu> or start two threads, one to inc, another to dec.
-[07:19:15] <kefu> i guess that's what BranchPredictor suggests.
-[07:19:50] <kefu> and guard the inc(global_value), dec(global_value) with spin_lock.
-[07:19:58] <kefu> chardan ^
-
-[07:21:19] <BranchPredictor> I actually meant a few loops of constant lock()/unlock() calls, executing in parallel.
-[07:21:27] * Tamil (~Adium@2606:6000:e793:5100:c938:bdd1:ac28:a87c) has joined
-[07:22:20] <BranchPredictor> but that doesn't seem to be measuring performance well enough imho, particular thread may starve occasionally.
-[07:26:36] <chardan> I think it will be fairly tricky to measure well... but at least we can get some idea.
-
+Hi, I've gone ahead and checked this in because I'm pretty tired and need to stop for now... didn't get to 
+all of the proposed benchmark ideas, but this hopefully is a hackable start!
 

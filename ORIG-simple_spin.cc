@@ -12,7 +12,7 @@
  *
  */
 
-#include "simple_spin.h"
+#include "ORIG-simple_spin.h"
 
 #include <stdio.h>
 #include <stdint.h>

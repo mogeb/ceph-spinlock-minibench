@@ -1,41 +1,59 @@
 
-#include "simple_spin.h"
+#include "ORIG-simple_spin.h"
 #include "ORIG-Spinlock.h"
 
 #include "minibench.hpp"
 
+#include <thread>
 #include <iostream>
 
-void spinlock_bench()
+namespace {
+
+unsigned long foo;
+
+} // namespace
+
+void spinlock_bench(long n)
 {
  simple_spinlock_t l { SIMPLE_SPINLOCK_INITIALIZER };
 
  simple_spin_lock(&l);
+ for(; n; --n)
+  foo++;
  simple_spin_unlock(&l);
 }
 
-void spinlock_bench2()
+void spinlock_bench2(long n)
 {
  Spinlock l;
 
  l.lock();
+ for(; n; --n)
+  foo++;
  l.unlock();
 }
 
-int main(int argc, char *argv[])
-try
+void spinlock_bench3(long n)
 {
- unsigned long N = 1000000000;
+ // Start two threads; one thread increments, one thread decrements:
 
- if(2 == argc)
-  N = std::stoul(argv[1]);
+ long foo = 0;
 
- std::cout << "Runs of: " << N << std::endl;
+ Spinlock l;
 
- std::cout << ceph::minibench::bench(spinlock_bench, N,  "ceph::simple_spin_lock (original)") << std::endl;
- std::cout << ceph::minibench::bench(spinlock_bench2, N, "ceph::Spinlock (original)") << std::endl;
+ auto inc_thread = [&](long n) {
+                    for(; n; --n)
+                     l.lock(), foo++, l.unlock();
+                   }; 
+
+ auto dec_thread = [&](long n) {
+                    for(; n; --n)
+                     l.lock(), foo++, l.unlock();
+                   }; 
+
+ std::thread t0(inc_thread, n); 
+ std::thread t1(dec_thread, n); 
+
+ t0.join(), t1.join();
 }
-catch(std::exception& e)
-{
- std::cout << "oops: " << e.what() << '\n';
-}
+
