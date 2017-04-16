@@ -39,7 +39,7 @@ void spinlock_bench3(long n)
 
  auto dec_thread = [&](long n) {
                     for(; n; --n)
-                     l.lock(), foo++, l.unlock();
+                     l.lock(), foo--, l.unlock();
                    }; 
 
  std::thread t0(inc_thread, n); 
